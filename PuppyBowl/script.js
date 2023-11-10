@@ -10,7 +10,7 @@ const formEl = document.querySelector('form');
 
 const state = {
     players: [],
-  };
+};
 
 // Get references to HTML elements
 const playerId = document.querySelector("#playerId");
@@ -18,24 +18,7 @@ const playerName = document.querySelector("#playerName");
 const playerBreed = document.querySelector("#breed");
 const playerStatus = document.querySelector("#status");
 const playerImageUrl = document.querySelector('#imageURL');
-const playerList = document.querySelector('#playerList');
-
-
-
-//Display Details
-const displayPlayerDetails = (player) => {
-    // Instead of setting the details in a separate div, you will append them to the li element.
-    const li = document.querySelector(`li[data-id="${player.id}"]`);
-    li.innerHTML += `
-        <p>Breed: ${player.breed}</p>
-        <p>Status: ${player.status}</p>
-        <img src="${player.imageUrl}" alt="${player.name}" />
-        <p>Created At: ${player.createdAt}</p>
-        <p>Updated At: ${player.updatedAt}</p>
-    `;
-};
-
-
+const playerList = document.getElementById('playerList');
 
 
 /**
@@ -44,26 +27,21 @@ const displayPlayerDetails = (player) => {
  */
 const fetchAllPlayers = async () => {
     try {
-        const response = await fetch(APIURL);
-        if (response.ok) {
-            const json = await response.json();
-            state.players = json.data.players; // Make sure the data structure matches your API response
-            renderAllPlayers(state.players); // Call renderAllPlayers here after fetching the data
-        } else {
-            console.error('Failed to fetch player data.');
-        }
+            const response = await fetch(APIURL);
+            const data = await response.json();
+            state.players = data.data;
     } catch (error) {
         console.error(error);
     }
 };
 
+
 const fetchSinglePlayer = async (playerId) => {
     try {
         const response = await fetch(`${APIURL}/${playerId}`);
         if (response.ok) {
-            const json = await response.json();
+            const data = await response.json();
             const player = json.data;
-            displayPlayerDetails(player);
         } else {
             console.error(`Player #${playerId} not found.`);
         }
@@ -85,7 +63,7 @@ const addNewPlayer = async (playerObj) => {
             formEl.reset();
             await fetchAllPlayers();
         } else {
-            console.error('Error adding a new player.');
+            console.error('Error adding a new players.');
         }
     } catch (err) {
         console.error('Oops, something went wrong with adding that player!', err);
@@ -94,14 +72,10 @@ const addNewPlayer = async (playerObj) => {
 
 const removePlayer = async (playerId) => {
     try {
-        const response = await fetch(`${APIURL}/${playerId}`,{
+        const response = await fetch(`${APIURL}/${id}`, {
             method: 'DELETE',
         });
-
-        if (!response.ok) {
-            throw new Error("Failed to delete the player");
-          }
-          renderAllPlayers(state.players);
+        renderAllPlayers(state.players);
     } catch (err) {
         console.error(
             `Whoops, trouble removing player #${playerId} from the roster!`,
@@ -121,7 +95,7 @@ const removePlayer = async (playerId) => {
  * The event listeners are for the "See details" and "Remove from roster" buttons. 
  * 
  * The "See details" button calls the `fetchSinglePlayer` function, which makes a fetch request to the
- * API to get the details for a single player. 
+ * API to get the details for a single players. 
  * 
  * The "Remove from roster" button calls the `removePlayer` function, which makes a fetch request to
  * the API to remove a player from the roster. 
@@ -132,30 +106,33 @@ const removePlayer = async (playerId) => {
  */
 const renderAllPlayers = (playerList) => {
     try {
-        const playerListElement = document.getElementById('playerList');
 
-    // Clear the list before rendering
-    playerListElement.innerHTML = "";
-
-    state.players.forEach((player) => {
-        const li = document.createElement("li");
-        li.setAttribute('data-id', player.id); // Set the data-id attribute for reference
-        li.innerHTML = `
-            <strong>${player.name}</strong>
-            <p>Breed: ${player.breed}</p>
-            <p>Status: ${player.status}</p>
+        // Clear the list before rendering
+        playerList.innerHTML = "";
+        state.players.forEach((player) => {
+            const playerCard = document.createElement("li");
+            playerCard.setAttribute('data-id', player.id);
+            playerCard.innerHTML = `
+            <h2>${player.name}</h2>
+            <img src="${player.imageUrl}" alt="${player.name}" />
             <button data-id="${player.id}">Delete player</button>
             <button class="show-details-button" data-id="${player.id}">Show Details</button>
         `;
 
-        // Add event listener for the "Show Details" button
-        const showDetailsButton = li.querySelector('.show-details-button');
-        showDetailsButton.addEventListener('click', () => {
-            fetchSinglePlayer(player.id); // Fetch details when the button is clicked
-        });
+            // Add event listener for the "See Details" button
+            playerCard.querySelector('.show-details-button').addEventListener('click', () => {
+                const playerId = playerCard.getAttribute('data-id');
+                fetchSinglePlayer(playerId);
+            });
 
-        playerListElement.appendChild(li);
-    });
+            // Add event listener for the "Remove from roster" button
+            playerCard.querySelector('.remove-player-button').addEventListener('click', () => {
+                const playerId = playerCard.getAttribute('data-id');
+                removePlayer(playerId);
+            });
+
+            playerList.appendChild(playerCard);
+        });
     } catch (err) {
         console.error('Uh oh, trouble rendering players!', err);
     }
@@ -169,47 +146,48 @@ const renderNewPlayerForm = () => {
     const formContainer = document.getElementById('new-player-form');
     formContainer.innerHTML = `
         <form>
-        <label>
-        Player ID
-        <input type="text" name="playerId" />
-      </label>
-      <label>
-        Player Name
-        <input type="text" name="name" />
-      </label>
-      <label>
-        Breed
-        <input type="text" name="breed" />
-      </label>
-      <label>
-        Status
-        <input type="text" name="status" />
-      </label>
-      <label>
-        Image Url
-        <textarea name="imageURL"></textarea>
-      </label>     
-        <button>Add Player</button>
+            <label>
+                Player ID
+                <input type="text" id="id" name="playerId" />
+            </label>
+            <label>
+                Player Name
+                <input type="text" name="name" />
+            </label>
+            <label>
+                Breed
+                <input type="text" name="breed" />
+            </label>
+            <label>
+                Status
+                <input type="text" name="status" />
+            </label>
+            <label>
+                Image Url
+                <textarea name="imageURL"></textarea>
+            </label>     
+            <button>Add Player</button>
         </form>
     `;
-    
+
     // Add an event listener to the form's submit button to call addNewPlayer function.
     formContainer.querySelector('form button').addEventListener('click', (event) => {
-        event.preventDefault(); 
+        event.preventDefault();
         const playerObj = {
             name: playerName.value,
             breed: playerBreed.value,
             status: playerStatus.value,
             imageUrl: playerImageUrl.value,
+            playerId: playerId.value
         };
         addNewPlayer(playerObj);
     });
 };
 
-const init = async () => {
-    await fetchAllPlayers(); 
-    renderAllPlayers(state.players); 
 
+const init = async () => {
+    await fetchAllPlayers();
+    renderAllPlayers(state.players);
     renderNewPlayerForm();
 }
 
