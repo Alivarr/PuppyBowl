@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  
+
 
   <!-- import CSS -->
   <link rel="stylesheet" href="styles.css">
@@ -18,14 +18,34 @@
 
   <!-- form to add new players -->
   <div id="new-player-form">
+    <form>
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="breed">Breed:</label>
+      <input type="text" id="breed" name="breed" required>
+
+      <label for="status">Status:</label>
+      <select id="status" name="status">
+        <option value="bench">Bench</option>
+        <option value="field">Field</option>
+      </select>
+
+      <label for="imageUrl">Image URL:</label>
+      <input type="text" id="imageUrl" name="imageUrl" required>
+
+
+      <button type="submit">Create Player</button>
+    </form>
   </div>
-<main>
-  <!-- container for all players -->
-  <div id="all-players-container">
-    <ul id="playerList"></ul>
-</div></main>
-<!-- import JavaScript -->
-<script defer src="script.js"></script>
+  <main>
+    <!-- container for all players -->
+    <div id="all-players-container">
+      <ul class="playerList"></ul>
+    </div>
+  </main>
+  <!-- import JavaScript -->
+  <script defer src="ref.js"></script>
 </body>
 
 </html>

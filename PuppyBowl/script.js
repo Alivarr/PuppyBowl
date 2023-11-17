@@ -29,7 +29,7 @@ const fetchAllPlayers = async () => {
     try {
             const response = await fetch(APIURL);
             const data = await response.json();
-            state.players = data.data;
+            return data.results;
     } catch (error) {
         console.error(error);
     }
@@ -68,6 +68,18 @@ const addNewPlayer = async (playerObj) => {
     } catch (err) {
         console.error('Oops, something went wrong with adding that player!', err);
     }
+    formContainer.querySelector('form button').addEventListener('click', (event) => {
+        event.preventDefault();
+        const playerObj = {
+            name: playerName.value,
+            breed: playerBreed.value,
+            status: playerStatus.value,
+            imageUrl: playerImageUrl.value,
+            playerId: playerId.value
+        };
+        addNewPlayer(playerObj);
+    });
+
 };
 
 const removePlayer = async (playerId) => {
@@ -138,57 +150,12 @@ const renderAllPlayers = (playerList) => {
     }
 };
 
-/**
- * It renders a form to the DOM, and when the form is submitted, it adds a new player to the database,
- * fetches all players from the database, and renders them to the DOM.
- */
-const renderNewPlayerForm = () => {
-    const formContainer = document.getElementById('new-player-form');
-    formContainer.innerHTML = `
-        <form>
-            <label>
-                Player ID
-                <input type="text" id="id" name="playerId" />
-            </label>
-            <label>
-                Player Name
-                <input type="text" name="name" />
-            </label>
-            <label>
-                Breed
-                <input type="text" name="breed" />
-            </label>
-            <label>
-                Status
-                <input type="text" name="status" />
-            </label>
-            <label>
-                Image Url
-                <textarea name="imageURL"></textarea>
-            </label>     
-            <button>Add Player</button>
-        </form>
-    `;
-
-    // Add an event listener to the form's submit button to call addNewPlayer function.
-    formContainer.querySelector('form button').addEventListener('click', (event) => {
-        event.preventDefault();
-        const playerObj = {
-            name: playerName.value,
-            breed: playerBreed.value,
-            status: playerStatus.value,
-            imageUrl: playerImageUrl.value,
-            playerId: playerId.value
-        };
-        addNewPlayer(playerObj);
-    });
-};
 
 
 const init = async () => {
     await fetchAllPlayers();
     renderAllPlayers(state.players);
-    renderNewPlayerForm();
+   
 }
 
 init();
