@@ -31,7 +31,7 @@ async function fetchAllPlayers() {
 
 async function fetchSinglePlayer(playerId) {
   try {
-    const response = await fetch(`${APIURL}/${id}`);
+    const response = await fetch(`${APIURL}/${playerId}`);
     const data = await response.json();
     return data;
   } catch (err) {
@@ -71,40 +71,45 @@ function renderAllPlayers(state) {
   playerCards.innerHTML = template;
 }
 
+function displayPlayerDetails(player) {
+  const playerDetails = document.createElement('div');
+  playerDetails.innerHTML = `
+    <h3>${player.name}</h3>
+    <p>Breed: ${player.breed}</p>
+    <p>Status: ${player.status}</p>
+    <img src="${player.imageUrl}" alt="${player.name}" />
+  `;
+  document.body.appendChild(playerDetails);
+}
+
 playerCards.addEventListener("click", async (e) => {
   if (e.target.matches(".details-button")) {
     const id = e.target.dataset.id;
     const player = await fetchSinglePlayer(id);
+    displayPlayerDetails(player);
   }
 });
 
 
-
 formEl.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    try {
-       await fetch(APIURL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: playerName.value,
-          breed: playerBreed.value,
-          status: playerStatus.value,
-          imageUrl: playerImageUrl.value,
-        }),
-      });
-  
-      playerName.value,
-        playerBreed.value,
-        playerStatus.value,
-        playerImageUrl.value;
-      init();
-    } catch (err) {
-      console.error(err);
-    }
-  });
+  event.preventDefault();
+  try {
+    const formData = new FormData(formEl);
+    const data = Object.fromEntries(formData);
+
+    await fetch(APIURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    init();
+  } catch (err) {
+    console.error(err);
+  }
+});
 
   
 async function removePlayer(playerId) {
