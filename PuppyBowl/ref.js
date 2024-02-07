@@ -9,6 +9,7 @@ const playerId = document.querySelector("#id");
 const playerBreed = document.querySelector("#breed");
 const playerStatus = document.querySelector("#status");
 const playerImageUrl = document.querySelector("#imageUrl");
+const everyPlayer = document.querySelector("#eachPlayer")
 const state = {
   players: [],
 };
@@ -21,7 +22,7 @@ async function fetchAllPlayers() {
   try {
     const response = await fetch(APIURL);
     const data = await response.json();
-   //console.log(data);
+    state.players = data.players;
     return data;
   } catch (err) {
     console.error(err);
@@ -66,35 +67,31 @@ async function fetchSinglePlayer(id) {
 function renderAllPlayers(state) {
   const template = state.players.map(player => {
       return (`<li>
-                    <h2>${player.name}</h2>
-                    <button class="delete-button">Delete player</button>
-        <button class="details-button" data-id=${player.id}>Get Info</button>
-                </li> `
+      <h2>${player.name}</h2>
+      <div class="player-details" style="display: none;">
+        <p>Breed: ${player.breed}</p>
+        <p>Status: ${player.status}</p>
+        <img src="${player.imageUrl}" alt="${player.name}">
+      </div>
+      <button class="details-button" data-id="${player.id}">Get Info</button>
+      <button class="delete-button" data-id="${player.id}">Delete Player</button>
+  </li> `
       )
     }).join("");
   playerCards.innerHTML = template;
-
-  const detailsButtons = document.querySelectorAll('.details-button');
-  detailsButtons.forEach(button => {
-    button.addEventListener('click', async (event) => {
-      const id = event.target.getAttribute('data-id');
-      const player = await fetchSinglePlayer(id);
-      displayPlayerDetails(player);
-    });
-  });
 }
 
-function displayPlayerDetails(player) {
-  const playerDetails = `
-    <h2>${player.name}</h2>
-    <p>Breed: ${player.breed}</p>
-    <p>Status: ${player.status}</p>
-    <img src="${player.imageUrl}" alt="${player.name}">
-  `;
 
-  const playerDetailsDiv = document.querySelector('#player-details');
-  playerDetailsDiv.innerHTML = playerDetails;
-}
+  /**
+ * It renders a form to the DOM, and when the form is submitted, it adds a new player to the database,
+ * fetches all players from the database, and renders them to the DOM.
+ */
+  async function init () {
+    const players = await fetchAllPlayers();
+    renderAllPlayers(players.data);
+  };
+  
+  init();
 
 
 
@@ -132,14 +129,23 @@ async function removePlayer(id) {
   init();
 }
 
-  /**
- * It renders a form to the DOM, and when the form is submitted, it adds a new player to the database,
- * fetches all players from the database, and renders them to the DOM.
- */
-async function init () {
-    const players = await fetchAllPlayers();
-    renderAllPlayers(players.data);
-  };
-  
-  init();
-  
+
+document.body.addEventListener('click', async function(event) {
+  if (event.target.classList.contains('details-button')) {
+    const id = event.target.getAttribute('data-id');
+    const playerDetails = event.target.parentNode.querySelector('.player-details');
+    if (playerDetails.style.display === 'none') {
+      playerDetails.style.display = 'block';
+    } else {
+      playerDetails.style.display = 'none';
+    }
+  } else if (event.target.classList.contains('delete-button')) {
+    const id = event.target.getAttribute('data-id');
+    try {
+      await removePlayer(id);
+      fetchAllPlayers().then(renderAllPlayers);
+    } catch (error) {
+      console.error('Failed to delete player:', error);
+    }
+  }
+});
