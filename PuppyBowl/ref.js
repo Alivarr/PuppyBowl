@@ -1,5 +1,4 @@
-const cohortName = "2308-ACC-ET-WEB-PT-A";
-const APIURL = `https://fsa-puppy-bowl.herokuapp.com/api/${cohortName}/players`;
+const APIURL = `https://fsa-puppy-bowl.herokuapp.com/api/2308-ACC-ET-WEB-PT-A/players`;
 
 const playerContainer = document.getElementById("all-players-container");
 const newPlayerFormContainer = document.getElementById("new-player-form");
@@ -29,13 +28,18 @@ async function fetchAllPlayers() {
   }
 }
 
-async function fetchSinglePlayer(playerId) {
+async function fetchSinglePlayer(id) {
   try {
-    const response = await fetch(`${APIURL}/${playerId}`);
+    const response = await fetch(`${APIURL}/${id}`);
     const data = await response.json();
-    return data;
-  } catch (err) {
-    console.error(err);
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Could not fetch player.');
+    }
+
+    return data.players;
+  } catch (error) {
+    console.error(error);
   }
 }
 
@@ -64,31 +68,34 @@ function renderAllPlayers(state) {
       return (`<li>
                     <h2>${player.name}</h2>
                     <button class="delete-button">Delete player</button>
-        <button class="details-button" data-name=${player.id}>Get Info</button>
+        <button class="details-button" data-id=${player.id}>Get Info</button>
                 </li> `
       )
     }).join("");
   playerCards.innerHTML = template;
+
+  const detailsButtons = document.querySelectorAll('.details-button');
+  detailsButtons.forEach(button => {
+    button.addEventListener('click', async (event) => {
+      const id = event.target.getAttribute('data-id');
+      const player = await fetchSinglePlayer(id);
+      displayPlayerDetails(player);
+    });
+  });
 }
 
 function displayPlayerDetails(player) {
-  const playerDetails = document.createElement('div');
-  playerDetails.innerHTML = `
-    <h3>${player.name}</h3>
+  const playerDetails = `
+    <h2>${player.name}</h2>
     <p>Breed: ${player.breed}</p>
     <p>Status: ${player.status}</p>
-    <img src="${player.imageUrl}" alt="${player.name}" />
+    <img src="${player.imageUrl}" alt="${player.name}">
   `;
-  document.body.appendChild(playerDetails);
+
+  const playerDetailsDiv = document.querySelector('#player-details');
+  playerDetailsDiv.innerHTML = playerDetails;
 }
 
-playerCards.addEventListener("click", async (e) => {
-  if (e.target.matches(".details-button")) {
-    const id = e.target.dataset.id;
-    const player = await fetchSinglePlayer(id);
-    displayPlayerDetails(player);
-  }
-});
 
 
 formEl.addEventListener("submit", async (event) => {
@@ -105,23 +112,25 @@ formEl.addEventListener("submit", async (event) => {
       body: JSON.stringify(data),
     });
 
-    init();
+    formEl.reset();
   } catch (err) {
     console.error(err);
   }
+  init();
 });
 
   
-async function removePlayer(playerId) {
-    try {
-      const response = await fetch(`${APIURL}/${id}`, {
-        method: "DELETE",
-      });
-      renderAllPlayers(state.players);
-    } catch (err) {
-      console.error(console.error(err));
-    }
+async function removePlayer(id) {
+  try {
+    const response = await fetch(`${APIURL}/${playerId}`, {
+      method: "DELETE",
+    });
+    await init();
+  } catch (err) {
+    console.error(err);
   }
+  init();
+}
 
   /**
  * It renders a form to the DOM, and when the form is submitted, it adds a new player to the database,
