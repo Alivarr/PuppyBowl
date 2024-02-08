@@ -66,7 +66,7 @@ async function fetchSinglePlayer(id) {
  */
 function renderAllPlayers(state) {
   const template = state.players.map(player => {
-      return (`<li>
+    return (`<li>
       <h2>${player.name}</h2>
       <div class="player-details" style="display: none;">
         <p>Breed: ${player.breed}</p>
@@ -76,22 +76,22 @@ function renderAllPlayers(state) {
       <button class="details-button" data-id="${player.id}">Get Info</button>
       <button class="delete-button" data-id="${player.id}">Delete Player</button>
   </li> `
-      )
-    }).join("");
+    )
+  }).join("");
   playerCards.innerHTML = template;
 }
 
 
-  /**
- * It renders a form to the DOM, and when the form is submitted, it adds a new player to the database,
- * fetches all players from the database, and renders them to the DOM.
- */
-  async function init () {
-    const players = await fetchAllPlayers();
-    renderAllPlayers(players.data);
-  };
-  
-  init();
+/**
+* It renders a form to the DOM, and when the form is submitted, it adds a new player to the database,
+* fetches all players from the database, and renders them to the DOM.
+*/
+async function init() {
+  const players = await fetchAllPlayers();
+  renderAllPlayers(players.data);
+};
+
+init();
 
 
 
@@ -116,10 +116,10 @@ formEl.addEventListener("submit", async (event) => {
   init();
 });
 
-  
+
 async function removePlayer(id) {
   try {
-    const response = await fetch(`${APIURL}/${playerId}`, {
+    const response = await fetch(`${APIURL}/${id}`, {
       method: "DELETE",
     });
     await init();
@@ -130,7 +130,7 @@ async function removePlayer(id) {
 }
 
 
-document.body.addEventListener('click', async function(event) {
+document.body.addEventListener('click', async function (event) {
   if (event.target.classList.contains('details-button')) {
     const id = event.target.getAttribute('data-id');
     const playerDetails = event.target.parentNode.querySelector('.player-details');
@@ -141,11 +141,19 @@ document.body.addEventListener('click', async function(event) {
     }
   } else if (event.target.classList.contains('delete-button')) {
     const id = event.target.getAttribute('data-id');
-    try {
-      await removePlayer(id);
-      fetchAllPlayers().then(renderAllPlayers);
-    } catch (error) {
-      console.error('Failed to delete player:', error);
+    if (id) {
+      try {
+        await removePlayer(id);
+        fetchAllPlayers().then(players => {
+          if (players) {
+            renderAllPlayers(players);
+          }
+        });
+      } catch (error) {
+        console.error('Failed to delete player:', error);
+      }
+    } else {
+      console.error('Failed to retrieve player ID');
     }
   }
 });
